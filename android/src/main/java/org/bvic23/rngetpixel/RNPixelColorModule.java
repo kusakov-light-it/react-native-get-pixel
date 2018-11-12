@@ -2,9 +2,8 @@ package org.bvic23.rngetpixel;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -14,8 +13,11 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableNativeArray;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.cos;
@@ -126,8 +128,42 @@ class RNPixelColorModule extends ReactContextBaseJavaModule {
     }
 
     private Bitmap loadImage(final String imageName) throws IOException {
-        final InputStream inputStream = context.getAssets().open("drawable/" + imageName + ".png");
-        final Drawable drawable = Drawable.createFromStream(inputStream, null);
-        return ((BitmapDrawable) drawable).getBitmap();
+        Bitmap bm = null;
+        InputStream is = null;
+        BufferedInputStream bis = null;
+
+        try {
+            URLConnection conn = new URL(imageName).openConnection();
+            conn.connect();
+            is = conn.getInputStream();
+            bis = new BufferedInputStream(is, 8192);
+            bm = BitmapFactory.decodeStream(bis);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (bis != null) 
+            {
+                try 
+                {
+                    bis.close();
+                }
+                catch (IOException e) 
+                {
+                    e.printStackTrace();
+                }
+            }
+            if (is != null) 
+            {
+                try 
+                {
+                    is.close();
+                }
+                catch (IOException e) 
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return bm;
     }
 }
